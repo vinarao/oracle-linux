@@ -126,7 +126,8 @@ distr::kernel_config() {
 #######################################
 distr::common_cfg() {
   local service tty
-
+  # Add local user 
+  useradd -m test -p test123
   # Directory to save build information
   mkdir -p "${BUILD_INFO}"
 
