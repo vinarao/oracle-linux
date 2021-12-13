@@ -48,10 +48,10 @@ btrfs /     --subvol --name=root LABEL=btrfs_vol\n\
 btrfs /home --subvol --name=home LABEL=btrfs_vol\
 "
   local lvm="\
-part pv.01 --ondisk=sda --size=4096 --grow\n\
+part pv.01 --ondisk=sda --size=8192 --grow\n\
 volgroup vg_main pv.01\n\
-logvol swap   --fstype=\"swap\" --vgname=vg_main --size=4096 --name=lv_swap\n\
-logvol /      --fstype=\"xfs\"  --vgname=vg_main --size=4096 --name=lv_root --grow\
+logvol swap   --fstype=\"swap\" --vgname=vg_main --size=8192 --name=lv_swap\n\
+logvol /      --fstype=\"xfs\"  --vgname=vg_main --size=8192 --name=lv_root --grow\
 "
 
   # Kickstart file is populated for xfs

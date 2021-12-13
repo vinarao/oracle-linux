@@ -9,8 +9,11 @@
   </DiskSection>
   <NetworkSection>
     <Info>The list of logical networks</Info>
-    <Network ovf:name="bridged">
-      <Description>The bridged network</Description>
+    <Network ovf:name="External Network">
+      <Description>Cloud Bridge Public network to connect to OCI</Description>
+    </Network>
+     <Network ovf:name="Internal Network">
+      <Description>Cloud Bridge Public network to connect to assests being discovered</Description>
     </Network>
   </NetworkSection>
   <VirtualSystem ovf:id="vm">
@@ -19,6 +22,36 @@
     <OperatingSystemSection ovf:id="109" vmw:osType="oracleLinux64Guest">
       <Info>The kind of installed guest operating system</Info>
     </OperatingSystemSection>
+        <ProductSection ovf:required="false">
+      <Info>Cloud-Init customization</Info>
+      <Product>Oracle Linux Server (20200722)</Product>
+      <Property ovf:key="instance-id" ovf:type="string" ovf:userConfigurable="true" ovf:value="id-ovf">
+          <Label>A Unique Instance ID for this instance</Label>
+          <Description>Specifies the instance id.  This is required and used to determine if the machine should take &quot;first boot&quot; actions</Description>
+      </Property>
+      <Property ovf:key="hostname" ovf:type="string" ovf:userConfigurable="true" ovf:value="ubuntuguest">
+          <Description>Specifies the hostname for the appliance</Description>
+      </Property>
+      <Property ovf:key="seedfrom" ovf:type="string" ovf:userConfigurable="true">
+          <Label>Url to seed instance data from</Label>
+          <Description>This field is optional, but indicates that the instance should &apos;seed&apos; user-data and meta-data from the given url.  If set to &apos;http://tinyurl.com/sm-&apos; is given, meta-data will be pulled from http://tinyurl.com/sm-meta-data and user-data from http://tinyurl.com/sm-user-data.  Leave this empty if you do not want to seed from a url.</Description>
+      </Property>
+      <Property ovf:key="public-keys" ovf:type="string" ovf:userConfigurable="true" ovf:value="">
+          <Label>ssh public keys</Label>
+          <Description>This field is optional, but indicates that the instance should populate the default user&apos;s &apos;authorized_keys&apos; with this value</Description>
+      </Property>
+      <Property ovf:key="user-data" ovf:type="string" ovf:userConfigurable="true" ovf:value="">
+          <Label>Encoded user-data</Label>
+          <Description>In order to fit into a xml attribute, this value is base64 encoded . It will be decoded, and then processed normally as user-data.</Description>
+          <!--  The following represents '#!/bin/sh\necho "hi world"'
+          ovf:value="IyEvYmluL3NoCmVjaG8gImhpIHdvcmxkIgo="
+        -->
+      </Property>
+      <Property ovf:key="password" ovf:type="string" ovf:userConfigurable="true" ovf:value="">
+          <Label>Default User&apos;s password</Label>
+          <Description>If set, the default user&apos;s password will be set to this value to allow password based login.  The password will be good for only a single login.  If set to the string &apos;RANDOM&apos; then a random password will be generated, and written to the console.</Description>
+      </Property>
+    </ProductSection>
     <VirtualHardwareSection>
       <Info>Virtual hardware requirements</Info>
       <System>
@@ -54,11 +87,23 @@
       <Item>
         <rasd:AddressOnParent>1</rasd:AddressOnParent>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
-        <rasd:Connection>bridged</rasd:Connection>
+        <rasd:Connection>External Network</rasd:Connection>
         <rasd:Description>E1000 ethernet adapter</rasd:Description>
         <rasd:ElementName>ethernet0</rasd:ElementName>
         <rasd:InstanceID>4</rasd:InstanceID>
-        <rasd:ResourceSubType>E1000</rasd:ResourceSubType>
+        <rasd:ResourceSubType>VmxNet3</rasd:ResourceSubType>
+        <rasd:ResourceType>10</rasd:ResourceType>
+        <vmw:Config ovf:required="false" vmw:key="slotInfo.pciSlotNumber" vmw:value="32"/>
+        <vmw:Config ovf:required="false" vmw:key="connectable.allowGuestControl" vmw:value="true"/>
+      </Item>
+      <Item>
+        <rasd:AddressOnParent>2</rasd:AddressOnParent>
+        <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
+        <rasd:Connection>Internal Network</rasd:Connection>
+        <rasd:Description>E1000 ethernet adapter</rasd:Description>
+        <rasd:ElementName>ethernet1</rasd:ElementName>
+        <rasd:InstanceID>7</rasd:InstanceID>
+	<rasd:ResourceSubType>VmxNet3</rasd:ResourceSubType>
         <rasd:ResourceType>10</rasd:ResourceType>
         <vmw:Config ovf:required="false" vmw:key="slotInfo.pciSlotNumber" vmw:value="32"/>
         <vmw:Config ovf:required="false" vmw:key="connectable.allowGuestControl" vmw:value="true"/>
@@ -80,7 +125,7 @@
         <rasd:AddressOnParent>0</rasd:AddressOnParent>
         <rasd:ElementName>disk0</rasd:ElementName>
         <rasd:HostResource>ovf:/disk/vmdisk1</rasd:HostResource>
-        <rasd:InstanceID>7</rasd:InstanceID>
+        <rasd:InstanceID>8</rasd:InstanceID>
         <rasd:Parent>3</rasd:Parent>
         <rasd:ResourceType>17</rasd:ResourceType>
       </Item>
