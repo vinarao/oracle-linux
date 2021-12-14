@@ -643,6 +643,7 @@ main () {
   cleanup
   echo_header "All done"
   echo_header "Image available in ${WORKSPACE}/${VM_NAME}"
+  echo_header "Image is now being uploaded to OCI Object Store"
 }
 
 main "$@"

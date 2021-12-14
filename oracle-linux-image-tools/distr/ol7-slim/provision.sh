@@ -47,6 +47,24 @@ distr::ks_log() {
   fi
 }
 
+cloud::cloud_init()
+{
+  echo_message "Install cloud-init: ${CLOUD_INIT^^}"
+  if [[ "${CLOUD_INIT,,}" = "yes" ]]; then
+    # Disable cloud-init during installation
+    #   cloud-init-generator is run at install time and generates systemd
+    #   timeouts while scanning for data-sources as we have the distribution
+    #   image mounted!
+    mkdir /etc/cloud
+    touch /etc/cloud/cloud-init.disabled
+    yum install -y "${YUM_VERBOSE}" cloud-init
+    rm /etc/cloud/cloud-init.disabled
+    if [[ -n "${CLOUD_USER}" ]]; then
+      sed -i -e "s/\(^\s\+name:\).*/\1 ${CLOUD_USER}/" /etc/cloud/cloud.cfg
+    fi
+  fi
+}
+
 #######################################
 # Kernel configuration
 # Assume that we already run the latest selected kernel
@@ -126,8 +144,7 @@ distr::kernel_config() {
 #######################################
 distr::common_cfg() {
   local service tty
-  # Add local user 
-  useradd -m test -p test123
+
   # Directory to save build information
   mkdir -p "${BUILD_INFO}"
 
@@ -186,6 +203,10 @@ distr::common_cfg() {
 
   echo_message "Clear network persistent data"
   rm -f /etc/udev/rules.d/70-persistent-net.rules
+
+  echo_message "Creating default test uuser" 
+  useradd -m test -p test123
+  usermod -aG wheel test  
 
   echo_message "Configure yum"
   # bypass update kernel-uek-headers
@@ -271,7 +292,6 @@ distr::cleanup() {
   for f in /etc/sysconfig/network-scripts/ifcfg-eth*; do
      [ -e "$f" ] && sed -i '/^HWADDR=/d' "$f"
   done
-
   echo_message "Yum cleanup"
   yum -q repolist > "${BUILD_INFO}/repolist.txt"
   : > /etc/yum/vars/ociregion
@@ -309,11 +329,6 @@ distr::cleanup() {
   /bin/rm -f /var/log/audit/audit.log*
   [ -e /var/log/audit/audit.log ] && : > /var/log/audit/audit.log
 
-  # Lock root user
-  if [[ "${LOCK_ROOT,,}" = "yes" ]]; then
-    passwd -d root
-    passwd -l root
-  fi
 
   # cleanup ssh config files
   if [ -z "${SSH_KEY_FILE}" ]; then
